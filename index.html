@@ -307,10 +307,14 @@
 
         const locationAddress = data.ssi_locationaddress || '';
 
+        // Format Pickup Time with hardcoded date
+        const rawTime = data.ssi_pickuptime || '';
+        const formattedTime = rawTime ? `October 20, 2026, ${rawTime}` : 'October 20, 2026';
+
         // Populate details
         document.getElementById('resName').innerText = fullName;
         document.getElementById('resBus').innerText = data.ssi_bus || 'N/A';
-        document.getElementById('resTime').innerText = data.ssi_pickuptime || 'N/A';
+        document.getElementById('resTime').innerText = formattedTime;
         document.getElementById('resLocation').innerText = locationAddress || 'N/A';
 
         // Render Map if address exists
