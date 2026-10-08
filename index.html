@@ -3,84 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Hands Transportation Search</title>
+  <title>Locate Your All Hands Transportation Assignment</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; }
-    .container { max-width: 480px; background: #ffffff; margin: 0 auto; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    h2 { color: #1a1a1a; margin-top: 0; font-size: 22px; }
-    .input-group { display: flex; gap: 8px; margin-top: 16px; }
-    input[type="text"] { flex: 1; padding: 12px; border: 1px solid #cccccc; border-radius: 6px; font-size: 16px; }
-    button { padding: 12px 20px; background-color: #0056b3; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    button:hover { background-color: #004085; }
-    .result-card { margin-top: 24px; padding: 16px; background-color: #f8f9fa; border-left: 4px solid #0056b3; border-radius: 4px; display: none; }
-    .result-item { margin: 8px 0; font-size: 15px; color: #333; }
-    .error-msg { margin-top: 16px; color: #d9534f; font-weight: 500; display: none; }
+    /* Reset & Core Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #ffffff;
+      color: #333333;
+      line-height: 1.5;
+    }
+
+    /* Full Width Top Blue Banner Header */
+    .header-banner {
+      background-color: #0078d4; /* Power Apps / Microsoft Blue */
+      color: #000000;
+      padding: 16px 24px;
+      width: 100%;
+    }
+    .header-banner h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.2px;
+    }
+
+    /* Main Page Content Container */
+    .content-container {
+      padding: 28px 24px;
+      max-width: 1200px;
+    }
+
+    /* Instruction Text (Red / Maroon) */
+    .instruction-text {
+      color: #b30000;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 18px;
+    }
+
+    /* Search Bar Inline Layout */
+    .search-box-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .search-input {
+      width: 240px;
+      padding: 8px 12px;
+      font-size: 15px;
+      border: 1px solid #767676;
+      border-radius: 0px; /* Matching classic Power Pages crisp square borders */
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: #0078d4;
+      box-shadow: 0 0 0 1px #0078d4;
+    }
+
+    .search-button {
+      background-color: #0078d4;
+      color: #ffffff;
+      border: none;
+      padding: 9px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 0px;
+      transition: background-color 0.15s ease-in-out;
+    }
+    .search-button:hover {
+      background-color: #005a9e;
+    }
+    .search-button:active {
+      background-color: #004578;
+    }
+
+    /* Error Message Area */
+    .error-container {
+      display: none;
+      color: #d13438;
+      font-weight: 600;
+      font-size: 15px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background-color: #fde7e9;
+      border-left: 4px solid #d13438;
+      max-width: 600px;
+    }
+
+    /* Results Card Layout */
+    .result-container {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #f3f2f1;
+      border: 1px solid #e1dfdd;
+      border-left: 5px solid #0078d4;
+      max-width: 600px;
+    }
+
+    .result-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0078d4;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e1dfdd;
+      padding-bottom: 8px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      row-gap: 10px;
+      font-size: 15px;
+    }
+
+    .result-label {
+      font-weight: 700;
+      color: #323130;
+    }
+
+    .result-value {
+      color: #201f1e;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+      display: none;
+      font-size: 14px;
+      color: #605e5c;
+      margin-top: 10px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Find Your Bus Assignment</h2>
-  <p style="color: #666; font-size: 14px;">Enter your Employee ID to view your pickup location and time.</p>
-  
-  <div class="input-group">
-    <input type="text" id="empId" placeholder="e.g. 31312">
-    <button onclick="lookup()">Search</button>
+  <!-- Top Blue Header Banner -->
+  <div class="header-banner">
+    <h1>Locate Your All Hands Transportation Assignment</h1>
   </div>
 
-  <div id="error" class="error-msg"></div>
-
-  <div id="result" class="result-card">
-    <div class="result-item"><strong>Name:</strong> <span id="fullName"></span></div>
-    <div class="result-item"><strong>Bus:</strong> <span id="bus"></span></div>
-    <div class="result-item"><strong>Pickup Time:</strong> <span id="pickupTime"></span></div>
-    <div class="result-item"><strong>Location Address:</strong> <span id="location"></span></div>
-  </div>
-</div>
-
-<script>
-  async function lookup() {
-    const empId = document.getElementById('empId').value.trim();
-    const resultDiv = document.getElementById('result');
-    const errorDiv = document.getElementById('error');
+  <!-- Main Body Content -->
+  <div class="content-container">
     
-    resultDiv.style.display = 'none';
-    errorDiv.style.display = 'none';
+    <div class="instruction-text">
+      To view your transportation assignment, enter your employee ID without leading zeros.
+    </div>
 
-    if (!empId) {
-      errorDiv.innerText = "Please enter an Employee ID.";
-      errorDiv.style.display = 'block';
-      return;
-    }
+    <!-- Inline Search Form -->
+    <div class="search-box-row">
+      <input 
+        type="text" 
+        id="employeeIdInput" 
+        class="search-input" 
+        placeholder="Enter Employee ID..." 
+        onkeypress="handleKeyPress(event)"
+      />
+      <button class="search-button" onclick="performLookup()">Search</button>
+    </div>
 
-    // PASTE YOUR POWER AUTOMATE URL BETWEEN THE QUOTES BELOW:
+    <div id="loading" class="loading-spinner">Searching records...</div>
+
+    <!-- Error Message Banner -->
+    <div id="errorMessage" class="error-container"></div>
+
+    <!-- Results Display Box -->
+    <div id="resultCard" class="result-container">
+      <div class="result-header">Transportation Details</div>
+      <div class="result-grid">
+        <div class="result-label">Name:</div>
+        <div class="result-value" id="resName">-</div>
+
+        <div class="result-label">Bus Number:</div>
+        <div class="result-value" id="resBus">-</div>
+
+        <div class="result-label">Pickup Time:</div>
+        <div class="result-value" id="resTime">-</div>
+
+        <div class="result-label">Pickup Location:</div>
+        <div class="result-value" id="resLocation">-</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Power Automate HTTP POST Trigger URL
     const flowApiUrl = "https://96c6a42a47de44609505d751c9773b.5e.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/15/workflows/743ec3867a74458ab8322ea09120c06f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CyFcwCoTtCltM-nRqAvRs7cstRC0bqHBQsLs2I3bJPw";
 
-    try {
-      const response = await fetch(flowApiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employeeId: empId })
-      });
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        performLookup();
+      }
+    }
 
-      const data = await response.json();
+    async function performLookup() {
+      const empIdInput = document.getElementById('employeeIdInput').value.trim();
+      const errorDiv = document.getElementById('errorMessage');
+      const resultCard = document.getElementById('resultCard');
+      const loadingDiv = document.getElementById('loading');
 
-      if (!data || !data.ssi_bus) {
-        throw new Error("No record found. Please double-check your Employee ID.");
+      // Reset previous views
+      errorDiv.style.display = 'none';
+      resultCard.style.display = 'none';
+      errorDiv.innerText = '';
+
+      if (!empIdInput) {
+        errorDiv.innerText = "Please enter your Employee ID.";
+        errorDiv.style.display = 'block';
+        return;
       }
 
-      document.getElementById('fullName').innerText = `${data.ssi_firstname || ''} ${data.ssi_lastname || ''}`;
-      document.getElementById('bus').innerText = data.ssi_bus || 'N/A';
-      document.getElementById('pickupTime').innerText = data.ssi_pickuptime || 'N/A';
-      document.getElementById('location').innerText = data.ssi_locationaddress || 'N/A';
+      loadingDiv.style.display = 'block';
 
-      resultDiv.style.display = 'block';
-    } catch (err) {
-      errorDiv.innerText = err.message;
-      errorDiv.style.display = 'block';
+      try {
+        const response = await fetch(flowApiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ employeeId: empIdInput })
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to connect to lookup service. Please try again later.");
+        }
+
+        const data = await response.json();
+
+        // Check if data returned valid fields
+        if (!data || Object.keys(data).length === 0 || !data.ssi_bus) {
+          throw new Error("No record found matching Employee ID '" + empIdInput + "'. Please check the ID and try again.");
+        }
+
+        // Construct Name
+        const firstName = data.ssi_firstname || '';
+        const lastName = data.ssi_lastname || '';
+        const fullName = (firstName + ' ' + lastName).trim() || 'N/A';
+
+        // Populate details
+        document.getElementById('resName').innerText = fullName;
+        document.getElementById('resBus').innerText = data.ssi_bus || 'N/A';
+        document.getElementById('resTime').innerText = data.ssi_pickuptime || 'N/A';
+        document.getElementById('resLocation').innerText = data.ssi_locationaddress || 'N/A';
+
+        // Show result box
+        resultCard.style.display = 'block';
+
+      } catch (err) {
+        errorDiv.innerText = err.message || "An unexpected error occurred.";
+        errorDiv.style.display = 'block';
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
     }
-  }
-</script>
-
+  </script>
 </body>
 </html>
