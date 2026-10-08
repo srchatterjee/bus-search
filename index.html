@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Hands Transportation Search</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; }
+    .container { max-width: 480px; background: #ffffff; margin: 0 auto; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h2 { color: #1a1a1a; margin-top: 0; font-size: 22px; }
+    .input-group { display: flex; gap: 8px; margin-top: 16px; }
+    input[type="text"] { flex: 1; padding: 12px; border: 1px solid #cccccc; border-radius: 6px; font-size: 16px; }
+    button { padding: 12px 20px; background-color: #0056b3; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    button:hover { background-color: #004085; }
+    .result-card { margin-top: 24px; padding: 16px; background-color: #f8f9fa; border-left: 4px solid #0056b3; border-radius: 4px; display: none; }
+    .result-item { margin: 8px 0; font-size: 15px; color: #333; }
+    .error-msg { margin-top: 16px; color: #d9534f; font-weight: 500; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Find Your Bus Assignment</h2>
+  <p style="color: #666; font-size: 14px;">Enter your Employee ID to view your pickup location and time.</p>
+  
+  <div class="input-group">
+    <input type="text" id="empId" placeholder="e.g. 31312">
+    <button onclick="lookup()">Search</button>
+  </div>
+
+  <div id="error" class="error-msg"></div>
+
+  <div id="result" class="result-card">
+    <div class="result-item"><strong>Name:</strong> <span id="fullName"></span></div>
+    <div class="result-item"><strong>Bus:</strong> <span id="bus"></span></div>
+    <div class="result-item"><strong>Pickup Time:</strong> <span id="pickupTime"></span></div>
+    <div class="result-item"><strong>Location Address:</strong> <span id="location"></span></div>
+  </div>
+</div>
+
+<script>
+  async function lookup() {
+    const empId = document.getElementById('empId').value.trim();
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    
+    resultDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+
+    if (!empId) {
+      errorDiv.innerText = "Please enter an Employee ID.";
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    // PASTE YOUR POWER AUTOMATE URL BETWEEN THE QUOTES BELOW:
+    const flowApiUrl = "YOUR_POWER_AUTOMATE_HTTP_POST_URL_HERE";
+
+    try {
+      const response = await fetch(flowApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employeeId: empId })
+      });
+
+      const data = await response.json();
+
+      if (!data || !data.ssi_bus) {
+        throw new Error("No record found. Please double-check your Employee ID.");
+      }
+
+      document.getElementById('fullName').innerText = `${data.ssi_firstname || ''} ${data.ssi_lastname || ''}`;
+      document.getElementById('bus').innerText = data.ssi_bus || 'N/A';
+      document.getElementById('pickupTime').innerText = data.ssi_pickuptime || 'N/A';
+      document.getElementById('location').innerText = data.ssi_locationaddress || 'N/A';
+
+      resultDiv.style.display = 'block';
+    } catch (err) {
+      errorDiv.innerText = err.message;
+      errorDiv.style.display = 'block';
+    }
+  }
+</script>
+
+</body>
+</html>
