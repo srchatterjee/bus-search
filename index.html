@@ -21,7 +21,7 @@
     /* Full Width Top Blue Banner Header */
     .header-banner {
       background-color: #0078d4; /* Power Apps / Microsoft Blue */
-      color: #000000;
+      color: #ffffff;
       padding: 16px 24px;
       width: 100%;
     }
@@ -134,6 +134,43 @@
       color: #201f1e;
     }
 
+    /* Map Section Styling */
+    .map-wrapper {
+      margin-top: 18px;
+      border-top: 1px solid #e1dfdd;
+      padding-top: 14px;
+    }
+
+    .map-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .map-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #323130;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: #0078d4;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+    .map-frame {
+      width: 100%;
+      height: 220px;
+      border: 1px solid #ccc;
+      background-color: #e5e3df;
+    }
+
     /* Loading Spinner */
     .loading-spinner {
       display: none;
@@ -191,6 +228,21 @@
         <div class="result-label">Pickup Location:</div>
         <div class="result-value" id="resLocation">-</div>
       </div>
+
+      <!-- Map Embed Section -->
+      <div id="mapSection" class="map-wrapper" style="display: none;">
+        <div class="map-header-row">
+          <span class="map-title">Map & Navigation:</span>
+          <a id="navExternalLink" href="#" target="_blank" class="nav-link">Open in Google Maps ↗</a>
+        </div>
+        <iframe 
+          id="mapIframe" 
+          class="map-frame" 
+          src="" 
+          loading="lazy" 
+          allowfullscreen>
+        </iframe>
+      </div>
     </div>
 
   </div>
@@ -210,10 +262,14 @@
       const errorDiv = document.getElementById('errorMessage');
       const resultCard = document.getElementById('resultCard');
       const loadingDiv = document.getElementById('loading');
+      const mapSection = document.getElementById('mapSection');
+      const mapIframe = document.getElementById('mapIframe');
+      const navExternalLink = document.getElementById('navExternalLink');
 
       // Reset previous views
       errorDiv.style.display = 'none';
       resultCard.style.display = 'none';
+      mapSection.style.display = 'none';
       errorDiv.innerText = '';
 
       if (!empIdInput) {
@@ -249,11 +305,26 @@
         const lastName = data.ssi_lastname || '';
         const fullName = (firstName + ' ' + lastName).trim() || 'N/A';
 
+        const locationAddress = data.ssi_locationaddress || '';
+
         // Populate details
         document.getElementById('resName').innerText = fullName;
         document.getElementById('resBus').innerText = data.ssi_bus || 'N/A';
         document.getElementById('resTime').innerText = data.ssi_pickuptime || 'N/A';
-        document.getElementById('resLocation').innerText = data.ssi_locationaddress || 'N/A';
+        document.getElementById('resLocation').innerText = locationAddress || 'N/A';
+
+        // Render Map if address exists
+        if (locationAddress && locationAddress !== 'N/A') {
+          const encodedAddress = encodeURIComponent(locationAddress);
+          
+          // Embedded iframe search map
+          mapIframe.src = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+          
+          // Navigation link for opening directly in phone/browser Google Maps app
+          navExternalLink.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+          
+          mapSection.style.display = 'block';
+        }
 
         // Show result box
         resultCard.style.display = 'block';
